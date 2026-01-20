@@ -141,3 +141,166 @@
         @apply bg-background text-foreground;
     }
 }
+
+/* Leaflet custom styles */
+.leaflet-popup-content-wrapper {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+}
+
+.leaflet-popup {
+    margin-top: -20px;
+}
+
+.leaflet-popup-tip {
+    background: transparent !important;
+    border: none !important;
+}
+
+.custom-marker {
+    background: transparent !important;
+    border: none !important;
+}
+
+/* Remove grid lines from map tiles */
+.leaflet-tile-container,
+.leaflet-tile,
+.leaflet-layer,
+.leaflet-pane > * {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.leaflet-container {
+    background: #0B1220 !important;
+    font-family: 'Inter', sans-serif !important;
+}
+
+img.leaflet-tile {
+    border: 0 !important;
+    outline: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* ===== PREMIUM DESIGN SYSTEM ===== */
+
+/* Color Variables */
+:root {
+    --midnight: #0B1220;
+    --charcoal: #141A2B;
+    --cyan: #4DEEEA;
+    --violet: #9B8CFF;
+    --gold: #F5C16C;
+    --muted-gray: #A0A6B8;
+}
+
+body {
+    background: var(--midnight);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    overflow: hidden;
+}
+
+/* Glassmorphism Effect */
+.glass {
+    background: rgba(20, 26, 43, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Glowing Effects */
+.glow-cyan {
+    box-shadow: 0 0 20px rgba(77, 238, 234, 0.5);
+}
+
+.glow-violet {
+    box-shadow: 0 0 20px rgba(155, 140, 255, 0.5);
+}
+
+.glow-gold {
+    box-shadow: 0 0 30px rgba(245, 193, 108, 0.6);
+}
+
+/* Pulse Animation */
+@keyframes pulse-glow {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.05);
+    }
+}
+
+.pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Floating Animation */
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.float {
+    animation: float 3s ease-in-out infinite;
+}
+
+/* Shimmer Animation */
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0;
+    }
+}
+
+.shimmer {
+    background: linear-gradient(
+        90deg,
+        rgba(77, 238, 234, 0.1) 0%,
+        rgba(155, 140, 255, 0.2) 50%,
+        rgba(77, 238, 234, 0.1) 100%
+    );
+    background-size: 1000px 100%;
+    animation: shimmer 3s linear infinite;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(20, 26, 43, 0.3);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(77, 238, 234, 0.3);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(77, 238, 234, 0.5);
+}
+
+/* Smooth Transitions */
+button, a {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Focus States */
+button:focus, input:focus, textarea:focus {
+    outline: none;
+    ring: 2px solid var(--cyan);
+    ring-offset: 2px;
+}

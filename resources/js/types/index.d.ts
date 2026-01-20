@@ -33,10 +33,26 @@ export interface User {
     id: number;
     name: string;
     email: string;
+    nickname?: string;
+    bio?: string;
     avatar?: string;
     email_verified_at: string | null;
     two_factor_enabled?: boolean;
+    daily_streak: number;
     created_at: string;
     updated_at: string;
-    [key: string]: unknown; // This allows for additional properties...
+    [key: string]: unknown;
 }
+
+export interface Message {
+    id: number;
+    content: string;
+    latitude: number;
+    longitude: number;
+    readCount: number;
+    user: User;
+    userHasRead: boolean;
+    isTopMessage: boolean;
+    created_at: string;
+}
+
