@@ -22,9 +22,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('throttle:6,1')
         ->name('user-password.update');
 
-    Route::get('settings/appearance', function () {
-        return Inertia::render('settings/appearance');
-    })->name('appearance.edit');
+    // TO DO: Add appearance/theme settings when ready
+    // Route::get('settings/appearance', function () {
+    //     return Inertia::render('settings/appearance');
+    // })->name('appearance.edit');
 
     Route::get('settings/two-factor', [TwoFactorAuthenticationController::class, 'show'])
         ->name('two-factor.show');

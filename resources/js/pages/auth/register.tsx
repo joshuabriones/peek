@@ -74,51 +74,50 @@ export default function Register() {
                                 <InputError message={errors.email} className="text-red-400" />
                             </div>
 
-                            {/* Password Fields Row */}
-                            <div className="grid sm:grid-cols-2 gap-4">
-                                <div className="grid gap-2">
-                                    <Label htmlFor="password" className="text-gray-300 text-sm font-medium">
-                                        Password
-                                    </Label>
-                                    <div className="relative">
-                                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">
-                                            <Lock className="w-5 h-5" />
-                                        </div>
-                                        <Input
-                                            id="password"
-                                            type="password"
-                                            required
-                                            tabIndex={3}
-                                            autoComplete="new-password"
-                                            name="password"
-                                            placeholder="••••••••"
-                                            className="pl-12 h-12 bg-white/5 border-white/10 rounded-xl text-white placeholder:text-gray-500 focus:border-[#ADFF00]/50 focus:ring-[#ADFF00]/20 transition-all"
-                                        />
+                            {/* Password Field */}
+                            <div className="grid gap-2">
+                                <Label htmlFor="password" className="text-gray-300 text-sm font-medium">
+                                    Password
+                                </Label>
+                                <div className="relative">
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">
+                                        <Lock className="w-5 h-5" />
                                     </div>
-                                    <InputError message={errors.password} className="text-red-400" />
+                                    <Input
+                                        id="password"
+                                        type="password"
+                                        required
+                                        tabIndex={3}
+                                        autoComplete="new-password"
+                                        name="password"
+                                        placeholder="••••••••"
+                                        className="pl-12 h-12 bg-white/5 border-white/10 rounded-xl text-white placeholder:text-gray-500 focus:border-[#ADFF00]/50 focus:ring-[#ADFF00]/20 transition-all"
+                                    />
                                 </div>
+                                <InputError message={errors.password} className="text-red-400" />
+                            </div>
 
-                                <div className="grid gap-2">
-                                    <Label htmlFor="password_confirmation" className="text-gray-300 text-sm font-medium">
-                                        Confirm
-                                    </Label>
-                                    <div className="relative">
-                                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">
-                                            <Shield className="w-5 h-5" />
-                                        </div>
-                                        <Input
-                                            id="password_confirmation"
-                                            type="password"
-                                            required
-                                            tabIndex={4}
-                                            autoComplete="new-password"
-                                            name="password_confirmation"
-                                            placeholder="••••••••"
-                                            className="pl-12 h-12 bg-white/5 border-white/10 rounded-xl text-white placeholder:text-gray-500 focus:border-[#ADFF00]/50 focus:ring-[#ADFF00]/20 transition-all"
-                                        />
+                            {/* Confirm Password Field */}
+                            <div className="grid gap-2">
+                                <Label htmlFor="password_confirmation" className="text-gray-300 text-sm font-medium">
+                                    Confirm password
+                                </Label>
+                                <div className="relative">
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">
+                                        <Shield className="w-5 h-5" />
                                     </div>
-                                    <InputError message={errors.password_confirmation} className="text-red-400" />
+                                    <Input
+                                        id="password_confirmation"
+                                        type="password"
+                                        required
+                                        tabIndex={4}
+                                        autoComplete="new-password"
+                                        name="password_confirmation"
+                                        placeholder="••••••••"
+                                        className="pl-12 h-12 bg-white/5 border-white/10 rounded-xl text-white placeholder:text-gray-500 focus:border-[#ADFF00]/50 focus:ring-[#ADFF00]/20 transition-all"
+                                    />
                                 </div>
+                                <InputError message={errors.password_confirmation} className="text-red-400" />
                             </div>
 
                             {/* Submit Button */}

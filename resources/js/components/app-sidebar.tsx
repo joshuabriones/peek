@@ -1,7 +1,6 @@
 import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-react';
+import { LayoutGrid, MapPin } from 'lucide-react';
 
-import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import {
@@ -16,26 +15,11 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 
-import AppLogo from './app-logo';
-
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
-    },
-];
-
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: Folder,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
     },
 ];
 
@@ -46,8 +30,13 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href={dashboard()} prefetch>
-                                <AppLogo />
+                            <Link href={dashboard()} prefetch className="flex items-center gap-2">
+                                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#ADFF00]">
+                                    <MapPin className="h-4 w-4 text-black" />
+                                </div>
+                                <span className="font-bold">
+                                    Map<span className="text-[#ADFF00]">Connect</span>
+                                </span>
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -59,7 +48,6 @@ export function AppSidebar() {
             </SidebarContent>
 
             <SidebarFooter>
-                <NavFooter items={footerNavItems} className="mt-auto" />
                 <NavUser />
             </SidebarFooter>
         </Sidebar>
