@@ -1,191 +1,31 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import axios from 'axios';
-import { MessageSquarePlus, LogOut, Settings, TrendingUp, X, Sparkles } from 'lucide-react';
+import {
+    MapPin,
+    Settings,
+    TrendingUp,
+    X,
+    Sparkles,
+    Send,
+    Zap,
+    Trophy,
+    Crown,
+    Medal,
+    Eye,
+    MessageCircle,
+    Navigation,
+    Globe,
+    Flame,
+    ChevronRight,
+    MapPinned,
+    User,
+    Clock,
+    Star
+} from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-
-// ASCII Art Text Background Component
-function AsciiTextBackground() {
-    const containerRef = useRef<HTMLDivElement>(null);
-    const [dimensions, setDimensions] = useState({ cols: 0, rows: 0 });
-    const [time, setTime] = useState(0);
-
-    // Characters to use for the ASCII effect - ordered by visual density
-    const chars = ' .:-=+*#%@';
-
-    useEffect(() => {
-        const updateDimensions = () => {
-            if (containerRef.current) {
-                const charWidth = 8;
-                const charHeight = 14;
-                const cols = Math.ceil(window.innerWidth / charWidth);
-                const rows = Math.ceil(window.innerHeight / charHeight);
-                setDimensions({ cols, rows });
-            }
-        };
-
-        updateDimensions();
-        window.addEventListener('resize', updateDimensions);
-        return () => window.removeEventListener('resize', updateDimensions);
-    }, []);
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setTime(t => t + 0.02);
-        }, 50);
-        return () => clearInterval(interval);
-    }, []);
-
-    const asciiGrid = useMemo(() => {
-        const { cols, rows } = dimensions;
-        if (cols === 0 || rows === 0) return '';
-
-        let result = '';
-        const centerX = cols / 2;
-        const centerY = rows / 2;
-
-        for (let y = 0; y < rows; y++) {
-            for (let x = 0; x < cols; x++) {
-                // Create flowing wave patterns that emanate from multiple points
-                const dx1 = (x - centerX) / cols;
-                const dy1 = (y - centerY) / rows;
-                const dist1 = Math.sqrt(dx1 * dx1 + dy1 * dy1);
-
-                // Second wave center (top-left area)
-                const dx2 = (x - cols * 0.2) / cols;
-                const dy2 = (y - rows * 0.3) / rows;
-                const dist2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
-
-                // Third wave center (bottom-right area)
-                const dx3 = (x - cols * 0.8) / cols;
-                const dy3 = (y - rows * 0.7) / rows;
-                const dist3 = Math.sqrt(dx3 * dx3 + dy3 * dy3);
-
-                // Combine multiple wave patterns
-                const wave1 = Math.sin(dist1 * 15 - time * 2) * 0.5 + 0.5;
-                const wave2 = Math.sin(dist2 * 12 - time * 1.5 + Math.PI) * 0.3 + 0.3;
-                const wave3 = Math.sin(dist3 * 10 - time * 2.5) * 0.2 + 0.2;
-
-                // Add some noise/texture
-                const noise = Math.sin(x * 0.5 + time) * Math.cos(y * 0.3 - time * 0.5) * 0.15;
-
-                // Combine all effects
-                let value = (wave1 + wave2 + wave3 + noise);
-
-                // Add radial fade from edges
-                const edgeFade = 1 - Math.max(
-                    Math.abs(x - centerX) / centerX,
-                    Math.abs(y - centerY) / centerY
-                ) * 0.3;
-
-                value *= edgeFade;
-
-                // Clamp and map to character
-                value = Math.max(0, Math.min(1, value));
-                const charIndex = Math.floor(value * (chars.length - 1));
-                result += chars[charIndex];
-            }
-            result += '\n';
-        }
-
-        return result;
-    }, [dimensions, time, chars]);
-
-    return (
-        <div
-            ref={containerRef}
-            className="fixed inset-0 overflow-hidden pointer-events-none select-none"
-            style={{
-                zIndex: 0,
-                background: '#000000'
-            }}
-        >
-            <pre
-                className="absolute inset-0 m-0 p-0 leading-none"
-                style={{
-                    fontFamily: 'monospace',
-                    fontSize: '10px',
-                    lineHeight: '14px',
-                    letterSpacing: '0px',
-                    color: 'transparent',
-                    background: 'linear-gradient(135deg, rgba(173, 255, 0, 0.12) 0%, rgba(173, 255, 0, 0.06) 50%, rgba(173, 255, 0, 0.08) 100%)',
-                    WebkitBackgroundClip: 'text',
-                    backgroundClip: 'text',
-                    whiteSpace: 'pre',
-                    overflow: 'hidden'
-                }}
-            >
-                {asciiGrid}
-            </pre>
-            {/* Gradient overlays for depth */}
-            <div
-                className="absolute inset-0"
-                style={{
-                    background: 'radial-gradient(ellipse at 30% 20%, rgba(173, 255, 0, 0.06) 0%, transparent 50%)',
-                    pointerEvents: 'none'
-                }}
-            />
-            <div
-                className="absolute inset-0"
-                style={{
-                    background: 'radial-gradient(ellipse at 70% 80%, rgba(173, 255, 0, 0.04) 0%, transparent 50%)',
-                    pointerEvents: 'none'
-                }}
-            />
-            {/* Vignette effect */}
-            <div
-                className="absolute inset-0"
-                style={{
-                    background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.8) 100%)',
-                    pointerEvents: 'none'
-                }}
-            />
-        </div>
-    );
-}
-
-// Small ASCII decoration for panels
-function AsciiPanelDecoration({ width = 200, height = 100 }: { width?: number; height?: number }) {
-    const chars = '░▒▓█▀▄▌▐';
-    const [grid, setGrid] = useState('');
-
-    useEffect(() => {
-        const charWidth = 6;
-        const charHeight = 10;
-        const cols = Math.floor(width / charWidth);
-        const rows = Math.floor(height / charHeight);
-
-        let result = '';
-        for (let y = 0; y < rows; y++) {
-            for (let x = 0; x < cols; x++) {
-                // Create a flowing pattern
-                const wave = Math.sin(x * 0.3 + y * 0.2) * Math.cos(y * 0.4 - x * 0.1);
-                const value = (wave + 1) / 2;
-                const charIndex = Math.floor(value * (chars.length - 1));
-                result += chars[charIndex];
-            }
-            result += '\n';
-        }
-        setGrid(result);
-    }, [width, height]);
-
-    return (
-        <pre
-            className="absolute inset-0 m-0 p-0 overflow-hidden pointer-events-none select-none"
-            style={{
-                fontFamily: 'monospace',
-                fontSize: '8px',
-                lineHeight: '10px',
-                color: 'rgba(173, 255, 0, 0.05)',
-                whiteSpace: 'pre'
-            }}
-        >
-            {grid}
-        </pre>
-    );
-}
 
 // Configure axios defaults
 axios.defaults.withCredentials = true;
@@ -202,7 +42,6 @@ function MapClickHandler({ onClick }: { onClick: (lat: number, lng: number) => v
 
 export default function Dashboard() {
     const [messages, setMessages] = useState<any[]>([]);
-    const [loading, setLoading] = useState(false);
     const [leaderboardOpen, setLeaderboardOpen] = useState(false);
     const [placementMode, setPlacementMode] = useState(false);
     const [topMessages, setTopMessages] = useState<any[]>([]);
@@ -308,80 +147,140 @@ export default function Dashboard() {
         const color = isTop ? '#FFFFFF' : '#ADFF00';
         return L.divIcon({
             html: `
-                <div style="position: relative; width: 16px; height: 16px;">
+                <div style="position: relative; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
                     <div style="
-                        width: 16px;
-                        height: 16px;
+                        position: absolute;
+                        width: 32px;
+                        height: 32px;
+                        background: ${color}20;
+                        border-radius: 50%;
+                        animation: ripple 2s ease-out infinite;
+                    "></div>
+                    <div style="
+                        position: absolute;
+                        width: 20px;
+                        height: 20px;
+                        background: ${color}40;
+                        border-radius: 50%;
+                        animation: ripple 2s ease-out infinite 0.5s;
+                    "></div>
+                    <div style="
+                        position: relative;
+                        width: 12px;
+                        height: 12px;
                         background: ${color};
                         border-radius: 50%;
-                        box-shadow: 0 0 20px ${color}, 0 0 40px ${color}50;
-                        animation: pulse-glow 2s ease-in-out infinite;
+                        box-shadow: 0 0 20px ${color}, 0 0 40px ${color}80;
                     "></div>
                 </div>
             `,
             className: '',
-            iconSize: [16, 16],
-            iconAnchor: [8, 8],
+            iconSize: [32, 32],
+            iconAnchor: [16, 16],
         });
+    };
+
+    const getRankIcon = (index: number) => {
+        switch (index) {
+            case 0:
+                return <Crown className="w-5 h-5 text-yellow-400" />;
+            case 1:
+                return <Medal className="w-5 h-5 text-gray-300" />;
+            case 2:
+                return <Medal className="w-5 h-5 text-amber-600" />;
+            default:
+                return <span className="text-sm font-bold text-gray-500">#{index + 1}</span>;
+        }
+    };
+
+    const getRankBg = (index: number) => {
+        switch (index) {
+            case 0:
+                return 'bg-gradient-to-r from-yellow-500/20 via-yellow-400/10 to-transparent border-yellow-500/30';
+            case 1:
+                return 'bg-gradient-to-r from-gray-400/20 via-gray-300/10 to-transparent border-gray-400/30';
+            case 2:
+                return 'bg-gradient-to-r from-amber-600/20 via-amber-500/10 to-transparent border-amber-500/30';
+            default:
+                return 'bg-white/5 border-white/10 hover:bg-white/10';
+        }
     };
 
     return (
         <>
             <Head title="Dashboard" />
 
-            {/* ASCII Text Background Effect */}
-            <AsciiTextBackground />
+            {/* Custom fonts */}
+            <link
+                href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=cabinet-grotesk@400,500,700&display=swap"
+                rel="stylesheet"
+            />
 
-            {/* Top Glass Navigation */}
-            <div className="fixed top-0 left-0 right-0 z-[1000]" style={{
-                background: 'rgba(0, 0, 0, 0.9)',
-                backdropFilter: 'blur(20px)',
-                borderBottom: '1px solid rgba(173, 255, 0, 0.2)'
-            }}>
-                <div className="flex items-center justify-between px-6 py-4">
-                    <div className="flex items-center gap-3">
-                        <Sparkles className="w-6 h-6" style={{ color: '#ADFF00' }} />
-                        <h1 className="text-xl font-bold" style={{ color: '#ADFF00' }}>
-                            MapConnect
-                        </h1>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                        <div className="px-4 py-2 rounded-full" style={{
-                            background: 'rgba(173, 255, 0, 0.1)',
-                            border: '1px solid rgba(173, 255, 0, 0.3)'
-                        }}>
-                            <span className="text-sm" style={{ color: '#ADFF00' }}>
-                                ⚡ {remaining} messages left today
+            {/* Top Navigation */}
+            <div className="fixed top-0 left-0 right-0 z-[1000]">
+                <div className="bg-black/80 backdrop-blur-xl border-b border-white/10">
+                    <div className="flex items-center justify-between px-4 md:px-6 py-3">
+                        {/* Logo */}
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-[#ADFF00] flex items-center justify-center shadow-[0_0_20px_rgba(173,255,0,0.4)]">
+                                <MapPin className="w-5 h-5 text-black" />
+                            </div>
+                            <span className="text-lg font-bold text-white hidden sm:block" style={{ fontFamily: "'Clash Display', sans-serif" }}>
+                                Map<span className="text-[#ADFF00]">Connect</span>
                             </span>
                         </div>
 
-                        <button
-                            onClick={() => setLeaderboardOpen(!leaderboardOpen)}
-                            className="p-2 rounded-lg hover:bg-white/10 transition-all"
-                            style={{ color: '#666666' }}
-                        >
-                            <TrendingUp className="w-5 h-5" />
-                        </button>
+                        {/* Center Stats */}
+                        <div className="flex items-center gap-2 md:gap-4">
+                            {/* Messages remaining */}
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-[#ADFF00]/10 border border-[#ADFF00]/30">
+                                <Zap className="w-4 h-4 text-[#ADFF00]" />
+                                <span className="text-sm font-semibold text-[#ADFF00]">
+                                    {remaining} left
+                                </span>
+                            </div>
 
-                        <Link href="/settings/profile" className="p-2 rounded-lg hover:bg-white/10 transition-all" style={{ color: '#666666' }}>
-                            <Settings className="w-5 h-5" />
-                        </Link>
+                            {/* Total messages indicator */}
+                            <div className="hidden md:flex items-center gap-2 px-3 py-2 rounded-full bg-white/5 border border-white/10">
+                                <Globe className="w-4 h-4 text-gray-400" />
+                                <span className="text-sm text-gray-400">
+                                    {messages.length} pins
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Right Actions */}
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setLeaderboardOpen(true)}
+                                className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-500/30 hover:from-orange-500/30 hover:to-red-500/30 transition-all group"
+                            >
+                                <Flame className="w-4 h-4 text-orange-400 group-hover:animate-pulse" />
+                                <span className="text-sm font-medium text-orange-400 hidden sm:block">Hot Today</span>
+                            </button>
+
+                            <Link
+                                href="/settings/profile"
+                                className="p-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all"
+                            >
+                                <Settings className="w-5 h-5 text-gray-400" />
+                            </Link>
+                        </div>
                     </div>
                 </div>
+
+                {/* Subtle gradient line */}
+                <div className="h-[2px] bg-gradient-to-r from-transparent via-[#ADFF00]/50 to-transparent" />
             </div>
 
             {/* Full Screen Map */}
-            <div className="fixed inset-0 z-10" style={{ paddingTop: '73px' }}>
+            <div className="fixed inset-0 z-10" style={{ paddingTop: '65px' }}>
                 <MapContainer
                     center={[20, 0]}
                     zoom={3}
                     minZoom={3}
                     maxZoom={18}
-                    maxBounds={[
-                        [-85, -180],
-                        [85, 180]
-                    ]}
+                    maxBounds={[[-85, -180], [85, 180]]}
                     maxBoundsViscosity={1.0}
                     style={{ height: '100%', width: '100%' }}
                     zoomControl={true}
@@ -402,33 +301,57 @@ export default function Dashboard() {
                             }}
                         >
                             <Popup className="custom-popup">
-                                <div className="p-4 rounded-2xl" style={{
-                                    background: 'rgba(0, 0, 0, 0.95)',
-                                    backdropFilter: 'blur(20px)',
-                                    border: '1px solid rgba(173, 255, 0, 0.2)',
-                                    minWidth: '280px'
-                                }}>
-                                    <div className="flex items-start justify-between mb-3">
-                                        <div>
-                                            <h3 className="font-semibold text-white text-base">
-                                                {msg.user?.nickname || 'Anonymous'}
-                                            </h3>
-                                            {msg.user?.bio && (
-                                                <p className="text-xs mt-1" style={{ color: '#666666' }}>{msg.user.bio}</p>
+                                <div className="min-w-[280px] max-w-[320px]">
+                                    {/* Popup Card */}
+                                    <div className="bg-black/95 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-2xl">
+                                        {/* Header with gradient */}
+                                        <div className="relative px-4 pt-4 pb-3">
+                                            {msg.isTopMessage && (
+                                                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#ADFF00] via-yellow-400 to-orange-500" />
                                             )}
+                                            <div className="flex items-start justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#ADFF00]/30 to-[#ADFF00]/10 flex items-center justify-center border border-[#ADFF00]/30">
+                                                        <User className="w-5 h-5 text-[#ADFF00]" />
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="font-semibold text-white text-sm">
+                                                            {msg.user?.nickname || 'Anonymous'}
+                                                        </h3>
+                                                        {msg.user?.bio && (
+                                                            <p className="text-xs text-gray-500 line-clamp-1">{msg.user.bio}</p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                {msg.isTopMessage && (
+                                                    <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-500/30">
+                                                        <Flame className="w-3 h-3 text-orange-400" />
+                                                        <span className="text-xs font-semibold text-orange-400">Hot</span>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                        {msg.isTopMessage && (
-                                            <span className="px-2 py-1 rounded-full text-xs font-semibold" style={{
-                                                background: 'rgba(173, 255, 0, 0.2)',
-                                                color: '#ADFF00'
-                                            }}>
-                                                🔥 Top
-                                            </span>
-                                        )}
-                                    </div>
-                                    <p className="text-white text-sm leading-relaxed mb-3">{msg.content}</p>
-                                    <div className="flex items-center gap-2 text-xs" style={{ color: '#666666' }}>
-                                        <span>📖 {msg.readCount} reads</span>
+
+                                        {/* Message content */}
+                                        <div className="px-4 pb-3">
+                                            <p className="text-white text-sm leading-relaxed">{msg.content}</p>
+                                        </div>
+
+                                        {/* Footer stats */}
+                                        <div className="px-4 py-3 bg-white/5 border-t border-white/10 flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex items-center gap-1.5 text-gray-400">
+                                                    <Eye className="w-4 h-4" />
+                                                    <span className="text-xs font-medium">{msg.readCount}</span>
+                                                </div>
+                                                <div className="flex items-center gap-1.5 text-gray-400">
+                                                    <Navigation className="w-4 h-4" />
+                                                    <span className="text-xs font-medium">
+                                                        {msg.latitude.toFixed(2)}, {msg.longitude.toFixed(2)}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </Popup>
@@ -437,250 +360,297 @@ export default function Dashboard() {
                 </MapContainer>
             </div>
 
-            {/* Leaderboard Slide Panel */}
+            {/* Floating Action Button */}
+            <button
+                onClick={() => setPlacementMode(true)}
+                className="fixed bottom-6 right-6 z-[1000] group"
+            >
+                <div className="relative">
+                    {/* Glow effect */}
+                    <div className="absolute inset-0 bg-[#ADFF00] rounded-2xl blur-xl opacity-40 group-hover:opacity-60 transition-opacity" />
+                    {/* Button */}
+                    <div className="relative flex items-center gap-3 px-5 py-4 bg-[#ADFF00] rounded-2xl shadow-lg hover:scale-105 transition-transform">
+                        <MapPinned className="w-5 h-5 text-black" />
+                        <span className="font-semibold text-black hidden sm:block">Drop Pin</span>
+                    </div>
+                </div>
+            </button>
+
+            {/* Leaderboard Modal */}
             {leaderboardOpen && (
-                <>
+                <div className="fixed inset-0 z-[1001] flex items-center justify-center p-4">
+                    {/* Backdrop */}
                     <div
-                        className="fixed inset-0 bg-black/50 z-[1001]"
+                        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
                         onClick={() => setLeaderboardOpen(false)}
                     />
+
+                    {/* Modal */}
                     <div
-                        className="fixed top-0 right-0 bottom-0 w-96 z-[1002] overflow-hidden"
-                        style={{
-                            background: 'rgba(0, 0, 0, 0.95)',
-                            backdropFilter: 'blur(20px)',
-                            borderLeft: '1px solid rgba(173, 255, 0, 0.2)',
-                            animation: 'slideInRight 0.3s ease-out'
-                        }}
+                        className="relative w-full max-w-lg bg-gray-950 rounded-3xl border border-white/10 overflow-hidden shadow-2xl animate-modal-in"
                     >
-                        {/* ASCII Decoration Background */}
-                        <AsciiPanelDecoration width={384} height={800} />
-                        <div className="relative z-10 p-6 overflow-y-auto h-full">
-                            <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-2xl font-bold" style={{ color: '#ADFF00' }}>
-                                    🔥 Top 10 Today
-                                </h2>
+                        {/* Top gradient accent */}
+                        <div className="h-1 bg-gradient-to-r from-orange-500 via-red-500 to-pink-500" />
+
+                        {/* Header */}
+                        <div className="p-6 border-b border-white/10">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500/20 to-red-500/20 flex items-center justify-center border border-orange-500/30">
+                                        <Trophy className="w-6 h-6 text-orange-400" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-xl font-bold text-white" style={{ fontFamily: "'Clash Display', sans-serif" }}>
+                                            Today's Leaderboard
+                                        </h2>
+                                        <p className="text-sm text-gray-500">Most viewed messages</p>
+                                    </div>
+                                </div>
                                 <button
                                     onClick={() => setLeaderboardOpen(false)}
-                                    className="p-2 rounded-lg hover:bg-white/10"
+                                    className="p-2 rounded-xl hover:bg-white/10 transition-all"
                                 >
-                                    <X className="w-5 h-5" style={{ color: '#666666' }} />
+                                    <X className="w-5 h-5 text-gray-400" />
                                 </button>
                             </div>
+                        </div>
 
-                            <div className="space-y-3">
+                        {/* Leaderboard list */}
+                        <div className="p-4 max-h-[60vh] overflow-y-auto">
+                            <div className="space-y-2">
                                 {topMessages.map((msg, idx) => (
                                     <div
                                         key={msg.id}
-                                        className="p-4 rounded-xl hover:bg-white/5 transition-all"
-                                        style={{
-                                            background: 'rgba(255, 255, 255, 0.02)',
-                                            border: '1px solid rgba(255, 255, 255, 0.05)'
-                                        }}
+                                        className={`p-4 rounded-2xl border transition-all ${getRankBg(idx)}`}
                                     >
-                                        <div className="flex items-start gap-3">
-                                            <div
-                                                className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0"
-                                                style={{
-                                                    background: idx === 0 ? '#ADFF00' :
-                                                               idx === 1 ? '#FFFFFF' :
-                                                               idx === 2 ? '#666666' :
-                                                               'rgba(173, 255, 0, 0.2)',
-                                                    color: idx < 3 ? '#000000' : '#ADFF00'
-                                                }}
-                                            >
-                                                {idx + 1}
+                                        <div className="flex items-center gap-4">
+                                            {/* Rank */}
+                                            <div className="w-10 h-10 rounded-xl bg-black/30 flex items-center justify-center">
+                                                {getRankIcon(idx)}
                                             </div>
+
+                                            {/* User & Message */}
                                             <div className="flex-1 min-w-0">
-                                                <p className="font-medium text-white text-sm mb-1">
-                                                    {msg.user?.nickname || 'Anonymous'}
-                                                </p>
-                                                <p className="text-xs line-clamp-2 mb-2" style={{ color: '#666666' }}>
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="font-semibold text-white text-sm">
+                                                        {msg.user?.nickname || 'Anonymous'}
+                                                    </span>
+                                                    {idx === 0 && (
+                                                        <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
+                                                    )}
+                                                </div>
+                                                <p className="text-xs text-gray-400 line-clamp-1">
                                                     {msg.content}
                                                 </p>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="text-xs font-semibold" style={{ color: '#ADFF00' }}>
-                                                        🔥 {msg.readCount} reads
-                                                    </span>
-                                                </div>
+                                            </div>
+
+                                            {/* Stats */}
+                                            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/30">
+                                                <Eye className="w-4 h-4 text-[#ADFF00]" />
+                                                <span className="text-sm font-bold text-[#ADFF00]">{msg.readCount}</span>
                                             </div>
                                         </div>
                                     </div>
                                 ))}
 
                                 {topMessages.length === 0 && (
-                                    <div className="text-center py-12" style={{ color: '#666666' }}>
-                                        <p>No messages yet today</p>
-                                        <p className="text-sm mt-2">Be the first to post!</p>
+                                    <div className="text-center py-16">
+                                        <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-white/5 flex items-center justify-center">
+                                            <MessageCircle className="w-8 h-8 text-gray-600" />
+                                        </div>
+                                        <p className="text-gray-400 font-medium">No messages yet today</p>
+                                        <p className="text-sm text-gray-600 mt-1">Be the first to drop a pin!</p>
                                     </div>
                                 )}
                             </div>
                         </div>
-                    </div>
-                </>
-            )}
 
-            {/* Message Placement Modal */}
-            {placementMode && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[1003] flex items-center justify-center p-4">
-                    <div
-                        className="rounded-3xl w-full max-w-md overflow-hidden relative"
-                        style={{
-                            background: 'rgba(0, 0, 0, 0.95)',
-                            backdropFilter: 'blur(20px)',
-                            border: '1px solid rgba(173, 255, 0, 0.2)',
-                            animation: 'scaleIn 0.3s ease-out'
-                        }}
-                    >
-                        {/* ASCII Decoration Background */}
-                        <AsciiPanelDecoration width={450} height={500} />
-                        <div className="relative z-10 p-6">
-                            <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-2xl font-bold text-white">Drop a Message</h2>
+                        {/* Footer */}
+                        <div className="p-4 border-t border-white/10 bg-white/5">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2 text-gray-500">
+                                    <Clock className="w-4 h-4" />
+                                    <span className="text-xs">Resets daily at midnight</span>
+                                </div>
                                 <button
-                                    onClick={() => setPlacementMode(false)}
-                                    className="p-2 rounded-lg hover:bg-white/10"
+                                    onClick={() => {
+                                        setLeaderboardOpen(false);
+                                        setPlacementMode(true);
+                                    }}
+                                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#ADFF00]/10 border border-[#ADFF00]/30 text-[#ADFF00] text-sm font-medium hover:bg-[#ADFF00]/20 transition-all"
                                 >
-                                    <X className="w-5 h-5" style={{ color: '#666666' }} />
+                                    <Sparkles className="w-4 h-4" />
+                                    Join the race
                                 </button>
                             </div>
-
-                            <div className="mb-6 p-4 rounded-xl" style={{
-                                background: 'rgba(173, 255, 0, 0.1)',
-                                border: '1px solid rgba(173, 255, 0, 0.2)'
-                            }}>
-                                <div className="flex items-center gap-2">
-                                    <Sparkles className="w-4 h-4" style={{ color: '#ADFF00' }} />
-                                    <span className="text-sm font-medium" style={{ color: '#ADFF00' }}>
-                                        You have {remaining} message(s) remaining today
-                                    </span>
-                                </div>
-                            </div>
-
-                            <form onSubmit={handlePostMessage} className="space-y-5">
-                                <div>
-                                    <label className="block text-sm font-semibold text-white mb-2">
-                                        Your Message
-                                    </label>
-                                    <textarea
-                                        value={messageContent}
-                                        onChange={(e) => setMessageContent(e.target.value)}
-                                        maxLength={500}
-                                        placeholder="Share something with the world..."
-                                        className="w-full px-4 py-3 rounded-xl resize-none focus:outline-none transition-all"
-                                        style={{
-                                            background: 'rgba(255, 255, 255, 0.05)',
-                                            border: '1px solid rgba(173, 255, 0, 0.2)',
-                                            color: 'white'
-                                        }}
-                                        rows={4}
-                                    />
-                                    <p className="text-xs mt-2" style={{ color: '#666666' }}>
-                                        {messageContent.length}/500 characters
-                                    </p>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-semibold text-white mb-2">
-                                            Latitude
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={latitude}
-                                            onChange={(e) => setLatitude(e.target.value)}
-                                            placeholder="40.7128"
-                                            className="w-full px-4 py-2 rounded-xl focus:outline-none"
-                                            style={{
-                                                background: 'rgba(255, 255, 255, 0.05)',
-                                                border: '1px solid rgba(173, 255, 0, 0.2)',
-                                                color: 'white'
-                                            }}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-semibold text-white mb-2">
-                                            Longitude
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={longitude}
-                                            onChange={(e) => setLongitude(e.target.value)}
-                                            placeholder="-74.0060"
-                                            className="w-full px-4 py-2 rounded-xl focus:outline-none"
-                                            style={{
-                                                background: 'rgba(255, 255, 255, 0.05)',
-                                                border: '1px solid rgba(173, 255, 0, 0.2)',
-                                                color: 'white'
-                                            }}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-3 pt-4">
-                                    <button
-                                        type="button"
-                                        onClick={() => setPlacementMode(false)}
-                                        className="flex-1 py-3 px-6 rounded-xl font-semibold transition-all hover:bg-white/10"
-                                        style={{
-                                            background: 'rgba(255, 255, 255, 0.05)',
-                                            border: '1px solid rgba(255, 255, 255, 0.1)',
-                                            color: '#666666'
-                                        }}
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        disabled={posting || !latitude || !longitude || !messageContent.trim()}
-                                        className="flex-1 py-3 px-6 rounded-xl font-semibold transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                                        style={{
-                                            background: '#ADFF00',
-                                            color: 'black',
-                                            boxShadow: '0 4px 20px rgba(173, 255, 0, 0.3)'
-                                        }}
-                                    >
-                                        {posting ? 'Posting...' : 'Drop Message'}
-                                    </button>
-                                </div>
-                            </form>
                         </div>
                     </div>
                 </div>
             )}
 
+            {/* Message Placement Modal */}
+            {placementMode && (
+                <div className="fixed inset-0 z-[1003] flex items-center justify-center p-4">
+                    {/* Backdrop */}
+                    <div
+                        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+                        onClick={() => setPlacementMode(false)}
+                    />
+
+                    {/* Modal */}
+                    <div className="relative w-full max-w-md bg-gray-950 rounded-3xl border border-white/10 overflow-hidden shadow-2xl animate-modal-in">
+                        {/* Top gradient accent */}
+                        <div className="h-1 bg-gradient-to-r from-[#ADFF00] via-emerald-400 to-cyan-400" />
+
+                        {/* Header */}
+                        <div className="p-6 border-b border-white/10">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-12 h-12 rounded-2xl bg-[#ADFF00]/10 flex items-center justify-center border border-[#ADFF00]/30">
+                                        <MapPinned className="w-6 h-6 text-[#ADFF00]" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-xl font-bold text-white" style={{ fontFamily: "'Clash Display', sans-serif" }}>
+                                            Drop Your Pin
+                                        </h2>
+                                        <p className="text-sm text-gray-500">Share with the world</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => setPlacementMode(false)}
+                                    className="p-2 rounded-xl hover:bg-white/10 transition-all"
+                                >
+                                    <X className="w-5 h-5 text-gray-400" />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Remaining indicator */}
+                        <div className="mx-6 mt-6">
+                            <div className="flex items-center gap-3 p-4 rounded-2xl bg-[#ADFF00]/5 border border-[#ADFF00]/20">
+                                <div className="w-10 h-10 rounded-xl bg-[#ADFF00]/20 flex items-center justify-center">
+                                    <Zap className="w-5 h-5 text-[#ADFF00]" />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium text-white">
+                                        {remaining} message{remaining !== 1 ? 's' : ''} remaining
+                                    </p>
+                                    <p className="text-xs text-gray-500">Resets daily at midnight</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Form */}
+                        <form onSubmit={handlePostMessage} className="p-6 space-y-5">
+                            {/* Message textarea */}
+                            <div>
+                                <label className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-2">
+                                    <MessageCircle className="w-4 h-4" />
+                                    Your Message
+                                </label>
+                                <div className="relative">
+                                    <textarea
+                                        value={messageContent}
+                                        onChange={(e) => setMessageContent(e.target.value)}
+                                        maxLength={500}
+                                        placeholder="What do you want to share with the world?"
+                                        className="w-full px-4 py-3 rounded-xl resize-none bg-white/5 border border-white/10 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#ADFF00]/50 focus:ring-2 focus:ring-[#ADFF00]/20 transition-all"
+                                        rows={4}
+                                    />
+                                    <div className="absolute bottom-3 right-3 text-xs text-gray-600">
+                                        {messageContent.length}/500
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Coordinates */}
+                            <div>
+                                <label className="flex items-center gap-2 text-sm font-medium text-gray-300 mb-2">
+                                    <Navigation className="w-4 h-4" />
+                                    Coordinates
+                                </label>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            value={latitude}
+                                            onChange={(e) => setLatitude(e.target.value)}
+                                            placeholder="Latitude"
+                                            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#ADFF00]/50 focus:ring-2 focus:ring-[#ADFF00]/20 transition-all"
+                                        />
+                                    </div>
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            value={longitude}
+                                            onChange={(e) => setLongitude(e.target.value)}
+                                            placeholder="Longitude"
+                                            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-gray-600 focus:outline-none focus:border-[#ADFF00]/50 focus:ring-2 focus:ring-[#ADFF00]/20 transition-all"
+                                        />
+                                    </div>
+                                </div>
+                                <p className="text-xs text-gray-600 mt-2">
+                                    💡 Tip: Click anywhere on the map to auto-fill coordinates
+                                </p>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex gap-3 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setPlacementMode(false)}
+                                    className="flex-1 py-3.5 px-6 rounded-xl font-medium bg-white/5 border border-white/10 text-gray-400 hover:bg-white/10 transition-all"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={posting || !latitude || !longitude || !messageContent.trim() || remaining === 0}
+                                    className="flex-1 py-3.5 px-6 rounded-xl font-semibold bg-[#ADFF00] text-black hover:bg-[#ADFF00]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(173,255,0,0.3)]"
+                                >
+                                    {posting ? (
+                                        <>
+                                            <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                                            Posting...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Send className="w-4 h-4" />
+                                            Drop Pin
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
             <style>{`
-                @keyframes slideInRight {
+                @keyframes ripple {
+                    0% {
+                        transform: scale(0.8);
+                        opacity: 1;
+                    }
+                    100% {
+                        transform: scale(2);
+                        opacity: 0;
+                    }
+                }
+
+                @keyframes modal-in {
                     from {
-                        transform: translateX(100%);
+                        transform: scale(0.95) translateY(10px);
                         opacity: 0;
                     }
                     to {
-                        transform: translateX(0);
+                        transform: scale(1) translateY(0);
                         opacity: 1;
                     }
                 }
 
-                @keyframes scaleIn {
-                    from {
-                        transform: scale(0.9);
-                        opacity: 0;
-                    }
-                    to {
-                        transform: scale(1);
-                        opacity: 1;
-                    }
-                }
-
-                @keyframes pulse-glow {
-                    0%, 100% {
-                        opacity: 1;
-                        transform: scale(1);
-                    }
-                    50% {
-                        opacity: 0.8;
-                        transform: scale(1.1);
-                    }
+                .animate-modal-in {
+                    animation: modal-in 0.2s ease-out;
                 }
 
                 .leaflet-popup-content-wrapper,
@@ -695,9 +665,26 @@ export default function Dashboard() {
                     margin: 0 !important;
                 }
 
-                /* Make map tiles slightly transparent to show ASCII background */
-                .leaflet-tile-pane {
-                    opacity: 0.92;
+                .leaflet-container {
+                    background: #0a0a0a;
+                }
+
+                /* Custom scrollbar for modals */
+                .overflow-y-auto::-webkit-scrollbar {
+                    width: 6px;
+                }
+
+                .overflow-y-auto::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+
+                .overflow-y-auto::-webkit-scrollbar-thumb {
+                    background: rgba(255, 255, 255, 0.1);
+                    border-radius: 3px;
+                }
+
+                .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+                    background: rgba(255, 255, 255, 0.2);
                 }
             `}</style>
         </>
