@@ -1,5 +1,5 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import { dashboard, login, register } from '@/routes';
+import { map, login, register } from '@/routes';
 import { type SharedData } from '@/types';
 import { MapPin, Globe2, MessageSquare, Users, Sparkles, TrendingUp, Lock, Zap, ArrowRight, ChevronRight, Star, Send, Eye, MapPinned, Compass, Navigation, Radio, Menu, X } from 'lucide-react';
 import { useState, useEffect, useRef, useMemo, type ReactNode } from 'react';
@@ -210,10 +210,10 @@ export default function Welcome({
                             <div className="hidden md:flex items-center gap-3">
                                 {auth.user ? (
                                     <Link
-                                        href={dashboard()}
+                                        href={map()}
                                         className="group px-6 py-3 rounded-full bg-[#ADFF00] hover:bg-[#c4ff4d] text-black font-bold transition-all duration-300 flex items-center gap-2 shadow-[0_0_30px_rgba(173,255,0,0.4)]"
                                     >
-                                        Dashboard
+                                        Open Map
                                         <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                     </Link>
                                 ) : (
@@ -258,10 +258,10 @@ export default function Welcome({
                         <div className="p-4 space-y-3">
                             {auth.user ? (
                                 <Link
-                                    href={dashboard()}
+                                    href={map()}
                                     className="block w-full px-6 py-4 rounded-2xl bg-[#ADFF00] text-black font-bold text-center shadow-[0_0_30px_rgba(173,255,0,0.4)]"
                                 >
-                                    Dashboard
+                                    Open Map
                                 </Link>
                             ) : (
                                 <>

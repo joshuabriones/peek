@@ -110,5 +110,29 @@ class MessageController extends Controller
             'remaining' => $user->messagesTodayRemaining(),
         ]);
     }
+
+    public function myMessagesToday(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $messages = Message::where('user_id', $user->id)
+            ->today()
+            ->withCount('reads')
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(function ($message) {
+                return [
+                    'id' => $message->id,
+                    'content' => $message->content,
+                    'latitude' => $message->latitude,
+                    'longitude' => $message->longitude,
+                    'readCount' => $message->reads_count,
+                    'createdAt' => $message->created_at->format('g:i A'),
+                    'createdAtFull' => $message->created_at->toISOString(),
+                ];
+            });
+
+        return response()->json($messages);
+    }
 }
 

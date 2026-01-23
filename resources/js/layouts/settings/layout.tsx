@@ -64,7 +64,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                         {/* Left: Back + Logo */}
                         <div className="flex items-center gap-3">
                             <Link
-                                href="/dashboard"
+                                href="/map"
                                 className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all group"
                             >
                                 <ArrowLeft className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors" />

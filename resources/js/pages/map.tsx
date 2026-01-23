@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import {
     MapPin,
@@ -23,9 +23,10 @@ import {
     Clock,
     Star,
     LogOut,
-    ChevronDown
+    ChevronDown,
+    List
 } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { logout } from '@/routes';
@@ -43,6 +44,19 @@ function MapClickHandler({ onClick }: { onClick: (lat: number, lng: number) => v
     return null;
 }
 
+// Component to handle centering map from URL params
+function MapCenterHandler({ lat, lng, zoom }: { lat?: number; lng?: number; zoom?: number }) {
+    const map = useMap();
+
+    useEffect(() => {
+        if (lat && lng) {
+            map.setView([lat, lng], zoom || 15, { animate: true });
+        }
+    }, [lat, lng, zoom, map]);
+
+    return null;
+}
+
 export default function Dashboard() {
     const [messages, setMessages] = useState<any[]>([]);
     const [leaderboardOpen, setLeaderboardOpen] = useState(false);
@@ -54,6 +68,26 @@ export default function Dashboard() {
     const [posting, setPosting] = useState(false);
     const [remaining, setRemaining] = useState(2);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
+
+    // Get URL params for map centering
+    const [initialCenter, setInitialCenter] = useState<{ lat?: number; lng?: number; zoom?: number }>({});
+
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const lat = urlParams.get('lat');
+        const lng = urlParams.get('lng');
+        const zoom = urlParams.get('zoom');
+
+        if (lat && lng) {
+            setInitialCenter({
+                lat: parseFloat(lat),
+                lng: parseFloat(lng),
+                zoom: zoom ? parseInt(zoom) : 15,
+            });
+            // Clear URL params after reading
+            window.history.replaceState({}, '', '/map');
+        }
+    }, []);
 
     const handleLogout = () => {
         router.flushAll();
@@ -216,7 +250,7 @@ export default function Dashboard() {
 
     return (
         <>
-            <Head title="Dashboard" />
+            <Head title="Map" />
 
             {/* Custom fonts */}
             <link
@@ -241,10 +275,13 @@ export default function Dashboard() {
                         {/* Center Stats */}
                         <div className="flex items-center gap-2 md:gap-4">
                             {/* Messages remaining */}
-                            <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-[#ADFF00]/10 border border-[#ADFF00]/30">
-                                <Zap className="w-4 h-4 text-[#ADFF00]" />
-                                <span className="text-sm font-semibold text-[#ADFF00]">
-                                    {remaining} left
+                            <div className="flex items-center gap-1.5 md:gap-2 px-2.5 md:px-3 py-1.5 md:py-2 rounded-full bg-[#ADFF00]/10 border border-[#ADFF00]/30">
+                                <Zap className="w-3.5 md:w-4 h-3.5 md:h-4 text-[#ADFF00]" />
+                                <span className="text-xs md:text-sm font-semibold text-[#ADFF00]">
+                                    {remaining}
+                                </span>
+                                <span className="text-xs md:text-sm font-semibold text-[#ADFF00] hidden sm:inline">
+                                    left
                                 </span>
                             </div>
 
@@ -259,12 +296,13 @@ export default function Dashboard() {
 
                         {/* Right Actions */}
                         <div className="flex items-center gap-2">
+                            {/* Hot Today - Hidden on mobile, shown in dropdown */}
                             <button
                                 onClick={() => setLeaderboardOpen(true)}
-                                className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-500/30 hover:from-orange-500/30 hover:to-red-500/30 transition-all group"
+                                className="hidden md:flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-500/30 hover:from-orange-500/30 hover:to-red-500/30 transition-all group"
                             >
                                 <Flame className="w-4 h-4 text-orange-400 group-hover:animate-pulse" />
-                                <span className="text-sm font-medium text-orange-400 hidden sm:block">Hot Today</span>
+                                <span className="text-sm font-medium text-orange-400">Hot Today</span>
                             </button>
 
                             {/* User Menu Dropdown */}
@@ -288,8 +326,33 @@ export default function Dashboard() {
                                             onClick={() => setUserMenuOpen(false)}
                                         />
                                         {/* Menu */}
-                                        <div className="absolute right-0 top-full mt-2 w-48 rounded-xl bg-gray-950 border border-white/10 shadow-xl z-[1001] overflow-hidden">
+                                        <div className="absolute right-0 top-full mt-2 w-56 rounded-xl bg-gray-950 border border-white/10 shadow-xl z-[1001] overflow-hidden">
                                             <div className="py-1">
+                                                {/* My Pins */}
+                                                <Link
+                                                    href="/my-messages"
+                                                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+                                                    onClick={() => setUserMenuOpen(false)}
+                                                >
+                                                    <List className="w-4 h-4 text-[#ADFF00]" />
+                                                    My Pins
+                                                </Link>
+
+                                                {/* Hot Today - Only on mobile */}
+                                                <button
+                                                    onClick={() => {
+                                                        setUserMenuOpen(false);
+                                                        setLeaderboardOpen(true);
+                                                    }}
+                                                    className="flex md:hidden items-center gap-3 px-4 py-2.5 text-sm text-orange-400 hover:bg-orange-500/10 transition-colors w-full"
+                                                >
+                                                    <Flame className="w-4 h-4" />
+                                                    Hot Today
+                                                </button>
+
+                                                <div className="h-px bg-white/10 mx-3 my-1" />
+
+                                                {/* Settings */}
                                                 <Link
                                                     href="/settings/profile"
                                                     className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
@@ -298,7 +361,10 @@ export default function Dashboard() {
                                                     <Settings className="w-4 h-4" />
                                                     Settings
                                                 </Link>
+
                                                 <div className="h-px bg-white/10 mx-3 my-1" />
+
+                                                {/* Logout */}
                                                 <Link
                                                     href={logout()}
                                                     as="button"
@@ -339,6 +405,7 @@ export default function Dashboard() {
                         attribution='&copy; OpenStreetMap'
                     />
                     <MapClickHandler onClick={handleMapRightClick} />
+                    <MapCenterHandler lat={initialCenter.lat} lng={initialCenter.lng} zoom={initialCenter.zoom} />
                     {messages.map((msg) => (
                         <Marker
                             key={msg.id}
