@@ -198,6 +198,11 @@ export default function Dashboard() {
                     zoom={3}
                     minZoom={3}
                     maxZoom={18}
+                    maxBounds={[
+                        [-85, -180],
+                        [85, 180]
+                    ]}
+                    maxBoundsViscosity={1.0}
                     style={{ height: '100%', width: '100%' }}
                     zoomControl={true}
                     worldCopyJump={true}
