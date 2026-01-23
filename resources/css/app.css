@@ -187,41 +187,47 @@ img.leaflet-tile {
 
 /* ===== PREMIUM DESIGN SYSTEM ===== */
 
-/* Color Variables */
+/* Color Variables - Black + Neon Green Theme */
 :root {
-    --midnight: #0B1220;
-    --charcoal: #141A2B;
-    --cyan: #4DEEEA;
-    --violet: #9B8CFF;
-    --gold: #F5C16C;
-    --muted-gray: #A0A6B8;
+    --midnight: #000000;
+    --charcoal: #0a0a0a;
+    --cyan: #ADFF00;
+    --neon: #ADFF00;
+    --violet: #ADFF00;
+    --gold: #FFFFFF;
+    --muted-gray: #666666;
+    --dark-gray: #111111;
 }
 
 body {
     background: var(--midnight);
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    overflow: hidden;
+    overflow-x: hidden;
 }
 
 /* Glassmorphism Effect */
 .glass {
-    background: rgba(20, 26, 43, 0.7);
+    background: rgba(10, 10, 10, 0.8);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(173, 255, 0, 0.15);
 }
 
-/* Glowing Effects */
+/* Glowing Effects - Neon Green */
 .glow-cyan {
-    box-shadow: 0 0 20px rgba(77, 238, 234, 0.5);
+    box-shadow: 0 0 20px rgba(173, 255, 0, 0.5);
+}
+
+.glow-neon {
+    box-shadow: 0 0 30px rgba(173, 255, 0, 0.6), 0 0 60px rgba(173, 255, 0, 0.3);
 }
 
 .glow-violet {
-    box-shadow: 0 0 20px rgba(155, 140, 255, 0.5);
+    box-shadow: 0 0 20px rgba(173, 255, 0, 0.4);
 }
 
 .glow-gold {
-    box-shadow: 0 0 30px rgba(245, 193, 108, 0.6);
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
 }
 
 /* Pulse Animation */
@@ -267,9 +273,9 @@ body {
 .shimmer {
     background: linear-gradient(
         90deg,
-        rgba(77, 238, 234, 0.1) 0%,
-        rgba(155, 140, 255, 0.2) 50%,
-        rgba(77, 238, 234, 0.1) 100%
+        rgba(173, 255, 0, 0.1) 0%,
+        rgba(173, 255, 0, 0.25) 50%,
+        rgba(173, 255, 0, 0.1) 100%
     );
     background-size: 1000px 100%;
     animation: shimmer 3s linear infinite;
@@ -281,16 +287,16 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-    background: rgba(20, 26, 43, 0.3);
+    background: rgba(0, 0, 0, 0.3);
 }
 
 ::-webkit-scrollbar-thumb {
-    background: rgba(77, 238, 234, 0.3);
+    background: rgba(173, 255, 0, 0.3);
     border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: rgba(77, 238, 234, 0.5);
+    background: rgba(173, 255, 0, 0.5);
 }
 
 /* Smooth Transitions */
@@ -304,3 +310,193 @@ button:focus, input:focus, textarea:focus {
     ring: 2px solid var(--cyan);
     ring-offset: 2px;
 }
+
+/* ===== NEW ANIMATIONS FOR LANDING PAGE ===== */
+
+/* Spinning animations for globe */
+@keyframes spin-slow {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes spin-slower {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin-slow {
+    animation: spin-slow 20s linear infinite;
+}
+
+.animate-spin-slower {
+    animation: spin-slower 30s linear infinite;
+}
+
+/* Floating animations for message cards */
+@keyframes float-slow {
+    0%, 100% {
+        transform: translateY(0px) translateX(0px);
+    }
+    25% {
+        transform: translateY(-10px) translateX(5px);
+    }
+    50% {
+        transform: translateY(-5px) translateX(-5px);
+    }
+    75% {
+        transform: translateY(-15px) translateX(3px);
+    }
+}
+
+@keyframes float-slower {
+    0%, 100% {
+        transform: translateY(0px) translateX(0px);
+    }
+    33% {
+        transform: translateY(-8px) translateX(-5px);
+    }
+    66% {
+        transform: translateY(-12px) translateX(8px);
+    }
+}
+
+.animate-float {
+    animation: float 4s ease-in-out infinite;
+}
+
+.animate-float-slow {
+    animation: float-slow 6s ease-in-out infinite;
+}
+
+.animate-float-slower {
+    animation: float-slower 8s ease-in-out infinite;
+}
+
+/* Scroll indicator animation */
+@keyframes scroll-down {
+    0% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    50% {
+        transform: translateY(6px);
+        opacity: 0.5;
+    }
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.animate-scroll-down {
+    animation: scroll-down 1.5s ease-in-out infinite;
+}
+
+/* Pulse border animation */
+@keyframes pulse-border {
+    0%, 100% {
+        border-color: rgba(173, 255, 0, 0.3);
+        box-shadow: 0 0 0 0 rgba(173, 255, 0, 0.1);
+    }
+    50% {
+        border-color: rgba(173, 255, 0, 0.6);
+        box-shadow: 0 0 20px 0 rgba(173, 255, 0, 0.2);
+    }
+}
+
+.animate-pulse-border {
+    animation: pulse-border 2s ease-in-out infinite;
+}
+
+/* Grid scan line animation */
+@keyframes scan-line {
+    0% {
+        transform: translateY(-100%);
+    }
+    100% {
+        transform: translateY(100vh);
+    }
+}
+
+.animate-scan-line {
+    animation: scan-line 8s linear infinite;
+}
+
+/* Draw line animation for underline */
+@keyframes draw-line {
+    0% {
+        stroke-dasharray: 0, 500;
+    }
+    100% {
+        stroke-dasharray: 500, 0;
+    }
+}
+
+.animate-draw-line {
+    stroke-dasharray: 0, 500;
+    animation: draw-line 1.5s ease-out forwards;
+    animation-delay: 0.5s;
+}
+
+/* Floating particle animation */
+@keyframes float-particle {
+    0%, 100% {
+        transform: translate(0, 0) scale(1);
+        opacity: 0.3;
+    }
+    25% {
+        transform: translate(20px, -30px) scale(1.1);
+        opacity: 0.6;
+    }
+    50% {
+        transform: translate(-10px, -50px) scale(0.9);
+        opacity: 0.4;
+    }
+    75% {
+        transform: translate(15px, -20px) scale(1.05);
+        opacity: 0.5;
+    }
+}
+
+.animate-float-particle {
+    animation: float-particle 10s ease-in-out infinite;
+}
+
+/* Pulse animation for orbs */
+@keyframes pulse-slow {
+    0%, 100% {
+        opacity: 0.3;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    50% {
+        opacity: 0.5;
+        transform: translate(-50%, -50%) scale(1.1);
+    }
+}
+
+.animate-pulse-slow {
+    animation: pulse-slow 4s ease-in-out infinite;
+}
+
+/* Glow pulse animation */
+@keyframes glow-pulse {
+    0%, 100% {
+        box-shadow: 0 0 20px rgba(173, 255, 0, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 40px rgba(173, 255, 0, 0.6), 0 0 60px rgba(173, 255, 0, 0.3);
+    }
+}
+
+.animate-glow-pulse {
+    animation: glow-pulse 2s ease-in-out infinite;
+}
+

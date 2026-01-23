@@ -1,10 +1,191 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import axios from 'axios';
 import { MessageSquarePlus, LogOut, Settings, TrendingUp, X, Sparkles } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+
+// ASCII Art Text Background Component
+function AsciiTextBackground() {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [dimensions, setDimensions] = useState({ cols: 0, rows: 0 });
+    const [time, setTime] = useState(0);
+
+    // Characters to use for the ASCII effect - ordered by visual density
+    const chars = ' .:-=+*#%@';
+
+    useEffect(() => {
+        const updateDimensions = () => {
+            if (containerRef.current) {
+                const charWidth = 8;
+                const charHeight = 14;
+                const cols = Math.ceil(window.innerWidth / charWidth);
+                const rows = Math.ceil(window.innerHeight / charHeight);
+                setDimensions({ cols, rows });
+            }
+        };
+
+        updateDimensions();
+        window.addEventListener('resize', updateDimensions);
+        return () => window.removeEventListener('resize', updateDimensions);
+    }, []);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setTime(t => t + 0.02);
+        }, 50);
+        return () => clearInterval(interval);
+    }, []);
+
+    const asciiGrid = useMemo(() => {
+        const { cols, rows } = dimensions;
+        if (cols === 0 || rows === 0) return '';
+
+        let result = '';
+        const centerX = cols / 2;
+        const centerY = rows / 2;
+
+        for (let y = 0; y < rows; y++) {
+            for (let x = 0; x < cols; x++) {
+                // Create flowing wave patterns that emanate from multiple points
+                const dx1 = (x - centerX) / cols;
+                const dy1 = (y - centerY) / rows;
+                const dist1 = Math.sqrt(dx1 * dx1 + dy1 * dy1);
+
+                // Second wave center (top-left area)
+                const dx2 = (x - cols * 0.2) / cols;
+                const dy2 = (y - rows * 0.3) / rows;
+                const dist2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
+
+                // Third wave center (bottom-right area)
+                const dx3 = (x - cols * 0.8) / cols;
+                const dy3 = (y - rows * 0.7) / rows;
+                const dist3 = Math.sqrt(dx3 * dx3 + dy3 * dy3);
+
+                // Combine multiple wave patterns
+                const wave1 = Math.sin(dist1 * 15 - time * 2) * 0.5 + 0.5;
+                const wave2 = Math.sin(dist2 * 12 - time * 1.5 + Math.PI) * 0.3 + 0.3;
+                const wave3 = Math.sin(dist3 * 10 - time * 2.5) * 0.2 + 0.2;
+
+                // Add some noise/texture
+                const noise = Math.sin(x * 0.5 + time) * Math.cos(y * 0.3 - time * 0.5) * 0.15;
+
+                // Combine all effects
+                let value = (wave1 + wave2 + wave3 + noise);
+
+                // Add radial fade from edges
+                const edgeFade = 1 - Math.max(
+                    Math.abs(x - centerX) / centerX,
+                    Math.abs(y - centerY) / centerY
+                ) * 0.3;
+
+                value *= edgeFade;
+
+                // Clamp and map to character
+                value = Math.max(0, Math.min(1, value));
+                const charIndex = Math.floor(value * (chars.length - 1));
+                result += chars[charIndex];
+            }
+            result += '\n';
+        }
+
+        return result;
+    }, [dimensions, time, chars]);
+
+    return (
+        <div
+            ref={containerRef}
+            className="fixed inset-0 overflow-hidden pointer-events-none select-none"
+            style={{
+                zIndex: 0,
+                background: '#000000'
+            }}
+        >
+            <pre
+                className="absolute inset-0 m-0 p-0 leading-none"
+                style={{
+                    fontFamily: 'monospace',
+                    fontSize: '10px',
+                    lineHeight: '14px',
+                    letterSpacing: '0px',
+                    color: 'transparent',
+                    background: 'linear-gradient(135deg, rgba(173, 255, 0, 0.12) 0%, rgba(173, 255, 0, 0.06) 50%, rgba(173, 255, 0, 0.08) 100%)',
+                    WebkitBackgroundClip: 'text',
+                    backgroundClip: 'text',
+                    whiteSpace: 'pre',
+                    overflow: 'hidden'
+                }}
+            >
+                {asciiGrid}
+            </pre>
+            {/* Gradient overlays for depth */}
+            <div
+                className="absolute inset-0"
+                style={{
+                    background: 'radial-gradient(ellipse at 30% 20%, rgba(173, 255, 0, 0.06) 0%, transparent 50%)',
+                    pointerEvents: 'none'
+                }}
+            />
+            <div
+                className="absolute inset-0"
+                style={{
+                    background: 'radial-gradient(ellipse at 70% 80%, rgba(173, 255, 0, 0.04) 0%, transparent 50%)',
+                    pointerEvents: 'none'
+                }}
+            />
+            {/* Vignette effect */}
+            <div
+                className="absolute inset-0"
+                style={{
+                    background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.8) 100%)',
+                    pointerEvents: 'none'
+                }}
+            />
+        </div>
+    );
+}
+
+// Small ASCII decoration for panels
+function AsciiPanelDecoration({ width = 200, height = 100 }: { width?: number; height?: number }) {
+    const chars = '░▒▓█▀▄▌▐';
+    const [grid, setGrid] = useState('');
+
+    useEffect(() => {
+        const charWidth = 6;
+        const charHeight = 10;
+        const cols = Math.floor(width / charWidth);
+        const rows = Math.floor(height / charHeight);
+
+        let result = '';
+        for (let y = 0; y < rows; y++) {
+            for (let x = 0; x < cols; x++) {
+                // Create a flowing pattern
+                const wave = Math.sin(x * 0.3 + y * 0.2) * Math.cos(y * 0.4 - x * 0.1);
+                const value = (wave + 1) / 2;
+                const charIndex = Math.floor(value * (chars.length - 1));
+                result += chars[charIndex];
+            }
+            result += '\n';
+        }
+        setGrid(result);
+    }, [width, height]);
+
+    return (
+        <pre
+            className="absolute inset-0 m-0 p-0 overflow-hidden pointer-events-none select-none"
+            style={{
+                fontFamily: 'monospace',
+                fontSize: '8px',
+                lineHeight: '10px',
+                color: 'rgba(173, 255, 0, 0.05)',
+                whiteSpace: 'pre'
+            }}
+        >
+            {grid}
+        </pre>
+    );
+}
 
 // Configure axios defaults
 axios.defaults.withCredentials = true;
@@ -124,7 +305,7 @@ export default function Dashboard() {
 
     // Custom marker icons
     const createMarkerIcon = (isTop: boolean) => {
-        const color = isTop ? '#F5C16C' : '#4DEEEA';
+        const color = isTop ? '#FFFFFF' : '#ADFF00';
         return L.divIcon({
             html: `
                 <div style="position: relative; width: 16px; height: 16px;">
@@ -148,30 +329,29 @@ export default function Dashboard() {
         <>
             <Head title="Dashboard" />
 
+            {/* ASCII Text Background Effect */}
+            <AsciiTextBackground />
+
             {/* Top Glass Navigation */}
-            <div className="fixed top-0 left-0 right-0 z-[1000] glass" style={{
-                background: 'rgba(20, 26, 43, 0.8)',
+            <div className="fixed top-0 left-0 right-0 z-[1000]" style={{
+                background: 'rgba(0, 0, 0, 0.9)',
                 backdropFilter: 'blur(20px)',
-                borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+                borderBottom: '1px solid rgba(173, 255, 0, 0.2)'
             }}>
                 <div className="flex items-center justify-between px-6 py-4">
                     <div className="flex items-center gap-3">
-                        <Sparkles className="w-6 h-6" style={{ color: '#4DEEEA' }} />
-                        <h1 className="text-xl font-bold" style={{
-                            background: 'linear-gradient(135deg, #4DEEEA 0%, #9B8CFF 100%)',
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent'
-                        }}>
+                        <Sparkles className="w-6 h-6" style={{ color: '#ADFF00' }} />
+                        <h1 className="text-xl font-bold" style={{ color: '#ADFF00' }}>
                             MapConnect
                         </h1>
                     </div>
 
                     <div className="flex items-center gap-4">
                         <div className="px-4 py-2 rounded-full" style={{
-                            background: 'rgba(77, 238, 234, 0.1)',
-                            border: '1px solid rgba(77, 238, 234, 0.3)'
+                            background: 'rgba(173, 255, 0, 0.1)',
+                            border: '1px solid rgba(173, 255, 0, 0.3)'
                         }}>
-                            <span className="text-sm" style={{ color: '#4DEEEA' }}>
+                            <span className="text-sm" style={{ color: '#ADFF00' }}>
                                 ⚡ {remaining} messages left today
                             </span>
                         </div>
@@ -179,12 +359,12 @@ export default function Dashboard() {
                         <button
                             onClick={() => setLeaderboardOpen(!leaderboardOpen)}
                             className="p-2 rounded-lg hover:bg-white/10 transition-all"
-                            style={{ color: '#A0A6B8' }}
+                            style={{ color: '#666666' }}
                         >
                             <TrendingUp className="w-5 h-5" />
                         </button>
 
-                        <Link href="/settings/profile" className="p-2 rounded-lg hover:bg-white/10 transition-all" style={{ color: '#A0A6B8' }}>
+                        <Link href="/settings/profile" className="p-2 rounded-lg hover:bg-white/10 transition-all" style={{ color: '#666666' }}>
                             <Settings className="w-5 h-5" />
                         </Link>
                     </div>
@@ -192,7 +372,7 @@ export default function Dashboard() {
             </div>
 
             {/* Full Screen Map */}
-            <div className="fixed inset-0" style={{ paddingTop: '73px' }}>
+            <div className="fixed inset-0 z-10" style={{ paddingTop: '73px' }}>
                 <MapContainer
                     center={[20, 0]}
                     zoom={3}
@@ -222,10 +402,10 @@ export default function Dashboard() {
                             }}
                         >
                             <Popup className="custom-popup">
-                                <div className="glass p-4 rounded-2xl" style={{
-                                    background: 'rgba(20, 26, 43, 0.95)',
+                                <div className="p-4 rounded-2xl" style={{
+                                    background: 'rgba(0, 0, 0, 0.95)',
                                     backdropFilter: 'blur(20px)',
-                                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                                    border: '1px solid rgba(173, 255, 0, 0.2)',
                                     minWidth: '280px'
                                 }}>
                                     <div className="flex items-start justify-between mb-3">
@@ -234,20 +414,20 @@ export default function Dashboard() {
                                                 {msg.user?.nickname || 'Anonymous'}
                                             </h3>
                                             {msg.user?.bio && (
-                                                <p className="text-xs mt-1" style={{ color: '#A0A6B8' }}>{msg.user.bio}</p>
+                                                <p className="text-xs mt-1" style={{ color: '#666666' }}>{msg.user.bio}</p>
                                             )}
                                         </div>
                                         {msg.isTopMessage && (
                                             <span className="px-2 py-1 rounded-full text-xs font-semibold" style={{
-                                                background: 'rgba(245, 193, 108, 0.2)',
-                                                color: '#F5C16C'
+                                                background: 'rgba(173, 255, 0, 0.2)',
+                                                color: '#ADFF00'
                                             }}>
                                                 🔥 Top
                                             </span>
                                         )}
                                     </div>
                                     <p className="text-white text-sm leading-relaxed mb-3">{msg.content}</p>
-                                    <div className="flex items-center gap-2 text-xs" style={{ color: '#A0A6B8' }}>
+                                    <div className="flex items-center gap-2 text-xs" style={{ color: '#666666' }}>
                                         <span>📖 {msg.readCount} reads</span>
                                     </div>
                                 </div>
@@ -265,28 +445,26 @@ export default function Dashboard() {
                         onClick={() => setLeaderboardOpen(false)}
                     />
                     <div
-                        className="fixed top-0 right-0 bottom-0 w-96 glass z-[1002] overflow-y-auto"
+                        className="fixed top-0 right-0 bottom-0 w-96 z-[1002] overflow-hidden"
                         style={{
-                            background: 'rgba(20, 26, 43, 0.95)',
+                            background: 'rgba(0, 0, 0, 0.95)',
                             backdropFilter: 'blur(20px)',
-                            borderLeft: '1px solid rgba(255, 255, 255, 0.1)',
+                            borderLeft: '1px solid rgba(173, 255, 0, 0.2)',
                             animation: 'slideInRight 0.3s ease-out'
                         }}
                     >
-                        <div className="p-6">
+                        {/* ASCII Decoration Background */}
+                        <AsciiPanelDecoration width={384} height={800} />
+                        <div className="relative z-10 p-6 overflow-y-auto h-full">
                             <div className="flex items-center justify-between mb-6">
-                                <h2 className="text-2xl font-bold" style={{
-                                    background: 'linear-gradient(135deg, #F5C16C 0%, #4DEEEA 100%)',
-                                    WebkitBackgroundClip: 'text',
-                                    WebkitTextFillColor: 'transparent'
-                                }}>
+                                <h2 className="text-2xl font-bold" style={{ color: '#ADFF00' }}>
                                     🔥 Top 10 Today
                                 </h2>
                                 <button
                                     onClick={() => setLeaderboardOpen(false)}
                                     className="p-2 rounded-lg hover:bg-white/10"
                                 >
-                                    <X className="w-5 h-5" style={{ color: '#A0A6B8' }} />
+                                    <X className="w-5 h-5" style={{ color: '#666666' }} />
                                 </button>
                             </div>
 
@@ -304,11 +482,11 @@ export default function Dashboard() {
                                             <div
                                                 className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0"
                                                 style={{
-                                                    background: idx === 0 ? 'linear-gradient(135deg, #F5C16C 0%, #FF9A3C 100%)' :
-                                                               idx === 1 ? 'linear-gradient(135deg, #A0A6B8 0%, #7A8299 100%)' :
-                                                               idx === 2 ? 'linear-gradient(135deg, #CD7F32 0%, #9B5F24 100%)' :
-                                                               'rgba(77, 238, 234, 0.2)',
-                                                    color: idx < 3 ? '#0B1220' : '#4DEEEA'
+                                                    background: idx === 0 ? '#ADFF00' :
+                                                               idx === 1 ? '#FFFFFF' :
+                                                               idx === 2 ? '#666666' :
+                                                               'rgba(173, 255, 0, 0.2)',
+                                                    color: idx < 3 ? '#000000' : '#ADFF00'
                                                 }}
                                             >
                                                 {idx + 1}
@@ -317,11 +495,11 @@ export default function Dashboard() {
                                                 <p className="font-medium text-white text-sm mb-1">
                                                     {msg.user?.nickname || 'Anonymous'}
                                                 </p>
-                                                <p className="text-xs line-clamp-2 mb-2" style={{ color: '#A0A6B8' }}>
+                                                <p className="text-xs line-clamp-2 mb-2" style={{ color: '#666666' }}>
                                                     {msg.content}
                                                 </p>
                                                 <div className="flex items-center gap-2">
-                                                    <span className="text-xs font-semibold" style={{ color: '#F5C16C' }}>
+                                                    <span className="text-xs font-semibold" style={{ color: '#ADFF00' }}>
                                                         🔥 {msg.readCount} reads
                                                     </span>
                                                 </div>
@@ -331,7 +509,7 @@ export default function Dashboard() {
                                 ))}
 
                                 {topMessages.length === 0 && (
-                                    <div className="text-center py-12" style={{ color: '#A0A6B8' }}>
+                                    <div className="text-center py-12" style={{ color: '#666666' }}>
                                         <p>No messages yet today</p>
                                         <p className="text-sm mt-2">Be the first to post!</p>
                                     </div>
@@ -346,32 +524,34 @@ export default function Dashboard() {
             {placementMode && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[1003] flex items-center justify-center p-4">
                     <div
-                        className="glass rounded-3xl w-full max-w-md overflow-hidden"
+                        className="rounded-3xl w-full max-w-md overflow-hidden relative"
                         style={{
-                            background: 'rgba(20, 26, 43, 0.95)',
+                            background: 'rgba(0, 0, 0, 0.95)',
                             backdropFilter: 'blur(20px)',
-                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                            border: '1px solid rgba(173, 255, 0, 0.2)',
                             animation: 'scaleIn 0.3s ease-out'
                         }}
                     >
-                        <div className="p-6">
+                        {/* ASCII Decoration Background */}
+                        <AsciiPanelDecoration width={450} height={500} />
+                        <div className="relative z-10 p-6">
                             <div className="flex items-center justify-between mb-6">
                                 <h2 className="text-2xl font-bold text-white">Drop a Message</h2>
                                 <button
                                     onClick={() => setPlacementMode(false)}
                                     className="p-2 rounded-lg hover:bg-white/10"
                                 >
-                                    <X className="w-5 h-5" style={{ color: '#A0A6B8' }} />
+                                    <X className="w-5 h-5" style={{ color: '#666666' }} />
                                 </button>
                             </div>
 
-                            <div className="mb-6 p-4 rounded-xl shimmer" style={{
-                                background: 'rgba(77, 238, 234, 0.1)',
-                                border: '1px solid rgba(77, 238, 234, 0.2)'
+                            <div className="mb-6 p-4 rounded-xl" style={{
+                                background: 'rgba(173, 255, 0, 0.1)',
+                                border: '1px solid rgba(173, 255, 0, 0.2)'
                             }}>
                                 <div className="flex items-center gap-2">
-                                    <Sparkles className="w-4 h-4" style={{ color: '#4DEEEA' }} />
-                                    <span className="text-sm font-medium" style={{ color: '#4DEEEA' }}>
+                                    <Sparkles className="w-4 h-4" style={{ color: '#ADFF00' }} />
+                                    <span className="text-sm font-medium" style={{ color: '#ADFF00' }}>
                                         You have {remaining} message(s) remaining today
                                     </span>
                                 </div>
@@ -390,12 +570,12 @@ export default function Dashboard() {
                                         className="w-full px-4 py-3 rounded-xl resize-none focus:outline-none transition-all"
                                         style={{
                                             background: 'rgba(255, 255, 255, 0.05)',
-                                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                                            border: '1px solid rgba(173, 255, 0, 0.2)',
                                             color: 'white'
                                         }}
                                         rows={4}
                                     />
-                                    <p className="text-xs mt-2" style={{ color: '#A0A6B8' }}>
+                                    <p className="text-xs mt-2" style={{ color: '#666666' }}>
                                         {messageContent.length}/500 characters
                                     </p>
                                 </div>
@@ -413,7 +593,7 @@ export default function Dashboard() {
                                             className="w-full px-4 py-2 rounded-xl focus:outline-none"
                                             style={{
                                                 background: 'rgba(255, 255, 255, 0.05)',
-                                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                                border: '1px solid rgba(173, 255, 0, 0.2)',
                                                 color: 'white'
                                             }}
                                         />
@@ -430,7 +610,7 @@ export default function Dashboard() {
                                             className="w-full px-4 py-2 rounded-xl focus:outline-none"
                                             style={{
                                                 background: 'rgba(255, 255, 255, 0.05)',
-                                                border: '1px solid rgba(255, 255, 255, 0.1)',
+                                                border: '1px solid rgba(173, 255, 0, 0.2)',
                                                 color: 'white'
                                             }}
                                         />
@@ -445,7 +625,7 @@ export default function Dashboard() {
                                         style={{
                                             background: 'rgba(255, 255, 255, 0.05)',
                                             border: '1px solid rgba(255, 255, 255, 0.1)',
-                                            color: '#A0A6B8'
+                                            color: '#666666'
                                         }}
                                     >
                                         Cancel
@@ -455,9 +635,9 @@ export default function Dashboard() {
                                         disabled={posting || !latitude || !longitude || !messageContent.trim()}
                                         className="flex-1 py-3 px-6 rounded-xl font-semibold transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                                         style={{
-                                            background: 'linear-gradient(135deg, #4DEEEA 0%, #9B8CFF 100%)',
-                                            color: 'white',
-                                            boxShadow: '0 4px 20px rgba(77, 238, 234, 0.3)'
+                                            background: '#ADFF00',
+                                            color: 'black',
+                                            boxShadow: '0 4px 20px rgba(173, 255, 0, 0.3)'
                                         }}
                                     >
                                         {posting ? 'Posting...' : 'Drop Message'}
@@ -492,6 +672,17 @@ export default function Dashboard() {
                     }
                 }
 
+                @keyframes pulse-glow {
+                    0%, 100% {
+                        opacity: 1;
+                        transform: scale(1);
+                    }
+                    50% {
+                        opacity: 0.8;
+                        transform: scale(1.1);
+                    }
+                }
+
                 .leaflet-popup-content-wrapper,
                 .leaflet-popup-tip {
                     background: transparent !important;
@@ -502,6 +693,11 @@ export default function Dashboard() {
 
                 .leaflet-popup-content {
                     margin: 0 !important;
+                }
+
+                /* Make map tiles slightly transparent to show ASCII background */
+                .leaflet-tile-pane {
+                    opacity: 0.92;
                 }
             `}</style>
         </>
