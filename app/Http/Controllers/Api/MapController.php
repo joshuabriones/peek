@@ -12,7 +12,7 @@ class MapController extends Controller
     {
         $messages = Message::today()
             ->with([
-                'user:id,name,nickname',
+                'user:id,nickname',
                 'reads:id,user_id,message_id'
             ])
             ->get()
@@ -23,7 +23,11 @@ class MapController extends Controller
                     'latitude' => $message->latitude,
                     'longitude' => $message->longitude,
                     'readCount' => $message->read_count,
-                    'user' => $message->user,
+                    'user' => [
+                        'id' => $message->user->id,
+                        'nickname' => $message->user->nickname ?: 'Anonymous',
+                    ],
+                    'user_id' => $message->user_id,
                     'userHasRead' => $request->user()?->messageReads()->where('message_id', $message->id)->exists() ?? false,
                     'isTopMessage' => $message->read_count >= $this->getTopMessageThreshold(),
                     'created_at' => $message->created_at,

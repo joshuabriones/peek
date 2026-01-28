@@ -1,5 +1,5 @@
 import { Form, Head } from '@inertiajs/react';
-import { User, Mail, Lock, ArrowRight, Shield } from 'lucide-react';
+import { User, Mail, Lock, ArrowRight, Shield, AtSign } from 'lucide-react';
 
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
@@ -51,6 +51,29 @@ export default function Register() {
                                 <InputError message={errors.name} className="text-red-400" />
                             </div>
 
+                            {/* Nickname Field */}
+                            <div className="grid gap-2">
+                                <Label htmlFor="nickname" className="text-gray-300 text-sm font-medium">
+                                    Nickname
+                                </Label>
+                                <div className="relative">
+                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500">
+                                        <AtSign className="w-5 h-5" />
+                                    </div>
+                                    <Input
+                                        id="nickname"
+                                        type="text"
+                                        required
+                                        tabIndex={2}
+                                        autoComplete="username"
+                                        name="nickname"
+                                        placeholder="YourNickname"
+                                        className="pl-12 h-12 bg-white/5 border-white/10 rounded-xl text-white placeholder:text-gray-500 focus:border-[#ADFF00]/50 focus:ring-[#ADFF00]/20 transition-all"
+                                    />
+                                </div>
+                                <InputError message={errors.nickname} className="text-red-400" />
+                            </div>
+
                             {/* Email Field */}
                             <div className="grid gap-2">
                                 <Label htmlFor="email" className="text-gray-300 text-sm font-medium">
@@ -64,7 +87,7 @@ export default function Register() {
                                         id="email"
                                         type="email"
                                         required
-                                        tabIndex={2}
+                                        tabIndex={3}
                                         autoComplete="email"
                                         name="email"
                                         placeholder="email@example.com"
@@ -87,7 +110,7 @@ export default function Register() {
                                         id="password"
                                         type="password"
                                         required
-                                        tabIndex={3}
+                                        tabIndex={4}
                                         autoComplete="new-password"
                                         name="password"
                                         placeholder="••••••••"
@@ -110,7 +133,7 @@ export default function Register() {
                                         id="password_confirmation"
                                         type="password"
                                         required
-                                        tabIndex={4}
+                                        tabIndex={5}
                                         autoComplete="new-password"
                                         name="password_confirmation"
                                         placeholder="••••••••"
@@ -124,7 +147,7 @@ export default function Register() {
                             <Button
                                 type="submit"
                                 className="mt-2 w-full h-12 bg-[#ADFF00] hover:bg-[#ADFF00]/90 text-black font-semibold rounded-xl transition-all duration-300 shadow-[0_0_20px_rgba(173,255,0,0.3)] hover:shadow-[0_0_30px_rgba(173,255,0,0.5)] group"
-                                tabIndex={5}
+                                tabIndex={6}
                                 data-test="register-user-button"
                             >
                                 {processing ? (
@@ -155,7 +178,7 @@ export default function Register() {
                             </span>
                             <TextLink
                                 href={login()}
-                                tabIndex={6}
+                                tabIndex={7}
                                 className="text-[#ADFF00] hover:text-[#ADFF00]/80 font-semibold transition-colors"
                             >
                                 Sign in

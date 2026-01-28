@@ -9,6 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class User extends Authenticatable
 {
@@ -84,6 +85,36 @@ class User extends Authenticatable
             'unlocked_user_id',
             'user_id'
         )->withTimestamps();
+    }
+
+    // Following relationships
+    public function followers()
+    {
+        return $this->hasMany(Follow::class, 'following_id');
+    }
+
+    public function following()
+    {
+        return $this->hasMany(Follow::class, 'follower_id');
+    }
+
+    public function isFollowedBy(User $user): bool
+    {
+        return Follow::where('follower_id', $user->id)
+            ->where('following_id', $this->id)
+            ->exists();
+    }
+
+    public function isFollowing(User $user): bool
+    {
+        return Follow::where('follower_id', $this->id)
+            ->where('following_id', $user->id)
+            ->exists();
+    }
+
+    public function isMutualFollow(User $user): bool
+    {
+        return $this->isFollowing($user) && $this->isFollowedBy($user);
     }
 
     // Methods

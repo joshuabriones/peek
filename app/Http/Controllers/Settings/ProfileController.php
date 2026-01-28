@@ -38,6 +38,10 @@ class ProfileController extends Controller
 
         $request->user()->save();
 
+        // Refresh the authenticated user in the session
+        $request->session()->put('user', $request->user()->fresh());
+        Auth::setUser($request->user()->fresh());
+
         return to_route('profile.edit');
     }
 

@@ -1,6 +1,6 @@
 import { Transition } from '@headlessui/react';
 import { Form, Head, Link, usePage } from '@inertiajs/react';
-import { User, Mail, Check } from 'lucide-react';
+import { User, Mail, Check, AtSign } from 'lucide-react';
 
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import DeleteUser from '@/components/delete-user';
@@ -66,6 +66,40 @@ export default function Profile({
                                         />
                                     </div>
                                     <InputError message={errors.name} />
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label htmlFor="nickname" className="text-sm font-medium">
+                                        Nickname
+                                    </Label>
+                                    <div className="relative">
+                                        <AtSign className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                                        <Input
+                                            id="nickname"
+                                            className="pl-10"
+                                            defaultValue={auth.user.nickname}
+                                            name="nickname"
+                                            required
+                                            autoComplete="username"
+                                            placeholder="YourNickname"
+                                        />
+                                    </div>
+                                    <InputError message={errors.nickname} />
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label htmlFor="bio" className="text-sm font-medium">
+                                        Bio
+                                    </Label>
+                                    <textarea
+                                        id="bio"
+                                        className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[#ADFF00]/50 focus:border-transparent"
+                                        defaultValue={auth.user.bio || ''}
+                                        name="bio"
+                                        placeholder="Tell others about yourself..."
+                                        rows={3}
+                                    />
+                                    <InputError message={errors.bio} />
                                 </div>
 
                                 <div className="grid gap-2">

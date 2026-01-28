@@ -16,6 +16,8 @@ trait ProfileValidationRules
     {
         return [
             'name' => $this->nameRules(),
+            'nickname' => $this->nicknameRules(),
+            'bio' => $this->bioRules(),
             'email' => $this->emailRules($userId),
         ];
     }
@@ -28,6 +30,26 @@ trait ProfileValidationRules
     protected function nameRules(): array
     {
         return ['required', 'string', 'max:255'];
+    }
+
+    /**
+     * Get the validation rules used to validate nicknames.
+     *
+     * @return array<int, \Illuminate\Contracts\Validation\Rule|array<mixed>|string>
+     */
+    protected function nicknameRules(): array
+    {
+        return ['nullable', 'string', 'max:50', 'alpha_dash'];
+    }
+
+    /**
+     * Get the validation rules used to validate bio.
+     *
+     * @return array<int, \Illuminate\Contracts\Validation\Rule|array<mixed>|string>
+     */
+    protected function bioRules(): array
+    {
+        return ['nullable', 'string', 'max:500'];
     }
 
     /**

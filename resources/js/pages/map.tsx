@@ -24,7 +24,8 @@ import {
     Star,
     LogOut,
     ChevronDown,
-    List
+    List,
+    Users
 } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
@@ -58,6 +59,9 @@ function MapCenterHandler({ lat, lng, zoom }: { lat?: number; lng?: number; zoom
 }
 
 export default function Dashboard() {
+    const page = usePage();
+    const currentUserId = (page.props as any)?.auth?.user?.id;
+
     const [messages, setMessages] = useState<any[]>([]);
     const [leaderboardOpen, setLeaderboardOpen] = useState(false);
     const [placementMode, setPlacementMode] = useState(false);
@@ -68,6 +72,7 @@ export default function Dashboard() {
     const [posting, setPosting] = useState(false);
     const [remaining, setRemaining] = useState(2);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
+    const [followingStatus, setFollowingStatus] = useState<{[key: number]: {is_following: boolean, is_followed_by: boolean, is_mutual: boolean}}>({});
 
     // Get URL params for map centering
     const [initialCenter, setInitialCenter] = useState<{ lat?: number; lng?: number; zoom?: number }>({});
@@ -137,6 +142,37 @@ export default function Dashboard() {
             }
         } catch (err) {
             console.error('Failed to mark message as read:', err);
+        }
+    };
+
+    const handleFollowClick = async (userId: number) => {
+        try {
+            const isCurrentlyFollowing = followingStatus[userId]?.is_following;
+            const endpoint = isCurrentlyFollowing
+                ? `/api/users/${userId}/unfollow`
+                : `/api/users/${userId}/follow`;
+
+            const response = await axios.post(endpoint);
+
+            setFollowingStatus(prev => ({
+                ...prev,
+                [userId]: response.data
+            }));
+        } catch (err: any) {
+            console.error('Failed to update follow status:', err);
+            alert(err.response?.data?.message || 'Failed to update follow status');
+        }
+    };
+
+    const fetchFollowStatus = async (userId: number) => {
+        try {
+            const response = await axios.get(`/api/users/${userId}/follow-status`);
+            setFollowingStatus(prev => ({
+                ...prev,
+                [userId]: response.data
+            }));
+        } catch (err) {
+            console.error('Failed to fetch follow status:', err);
         }
     };
 
@@ -328,14 +364,14 @@ export default function Dashboard() {
                                         {/* Menu */}
                                         <div className="absolute right-0 top-full mt-2 w-56 rounded-xl bg-gray-950 border border-white/10 shadow-xl z-[1001] overflow-hidden">
                                             <div className="py-1">
-                                                {/* My Pins */}
+                                                {/* My Profile */}
                                                 <Link
-                                                    href="/my-messages"
+                                                    href="/my-profile"
                                                     className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
                                                     onClick={() => setUserMenuOpen(false)}
                                                 >
-                                                    <List className="w-4 h-4 text-[#ADFF00]" />
-                                                    My Pins
+                                                    <User className="w-4 h-4 text-[#ADFF00]" />
+                                                    My Profile
                                                 </Link>
 
                                                 {/* Hot Today - Only on mobile */}
@@ -412,7 +448,10 @@ export default function Dashboard() {
                             position={[msg.latitude, msg.longitude]}
                             icon={createMarkerIcon(msg.isTopMessage)}
                             eventHandlers={{
-                                popupopen: () => handlePopupOpen(msg.id)
+                                popupopen: () => {
+                                    handlePopupOpen(msg.id);
+                                    fetchFollowStatus(msg.user_id);
+                                }
                             }}
                         >
                             <Popup className="custom-popup">
@@ -451,6 +490,22 @@ export default function Dashboard() {
                                         <div className="px-4 pb-3">
                                             <p className="text-white text-sm leading-relaxed">{msg.content}</p>
                                         </div>
+
+                                        {/* Follow Button */}
+                                        {msg.user_id && msg.user_id !== currentUserId && (
+                                            <div className="px-4 pb-3">
+                                                <button
+                                                    onClick={() => handleFollowClick(msg.user_id)}
+                                                    className={`w-full py-2 px-3 rounded-lg font-medium text-sm transition-all ${
+                                                        followingStatus[msg.user_id]?.is_following
+                                                            ? 'bg-white/10 border border-white/20 text-white hover:bg-white/20'
+                                                            : 'bg-[#ADFF00] text-black hover:bg-[#ADFF00]/90'
+                                                    }`}
+                                                >
+                                                    {followingStatus[msg.user_id]?.is_following ? 'Following' : 'Follow'}
+                                                </button>
+                                            </div>
+                                        )}
 
                                         {/* Footer stats */}
                                         <div className="px-4 py-3 bg-white/5 border-t border-white/10 flex items-center justify-between">

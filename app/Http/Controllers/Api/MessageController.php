@@ -87,8 +87,15 @@ class MessageController extends Controller
     public function index(Request $request): JsonResponse
     {
         $messages = Message::today()
-            ->with('user:id,name,nickname')
-            ->get();
+            ->with('user:id,nickname')
+            ->get()
+            ->map(function ($message) {
+                $message->user = [
+                    'id' => $message->user->id,
+                    'nickname' => $message->user->nickname ?: 'Anonymous',
+                ];
+                return $message;
+            });
 
         return response()->json($messages);
     }
@@ -96,8 +103,15 @@ class MessageController extends Controller
     public function topToday(): JsonResponse
     {
         $topMessages = Message::topToday(10)
-            ->with('user:id,name,nickname')
-            ->get();
+            ->with('user:id,nickname')
+            ->get()
+            ->map(function ($message) {
+                $message->user = [
+                    'id' => $message->user->id,
+                    'nickname' => $message->user->nickname ?: 'Anonymous',
+                ];
+                return $message;
+            });
 
         return response()->json($topMessages);
     }
