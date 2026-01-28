@@ -6,8 +6,12 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { initializeTheme } from './hooks/use-appearance';
+import { setupCsrfInterceptor } from './lib/csrf';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+
+// Initialize CSRF protection before creating the app
+setupCsrfInterceptor();
 
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
