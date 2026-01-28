@@ -4,6 +4,11 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
+// CSRF Cookie Route for Sanctum
+Route::get('/sanctum/csrf-cookie', function () {
+    return response()->json(['message' => 'CSRF token set']);
+});
+
 Route::get('/', function () {
     return Inertia::render('welcome_new', [
         'canRegister' => Features::enabled(Features::registration()),
