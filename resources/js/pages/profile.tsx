@@ -142,9 +142,11 @@ export default function ProfileView() {
         );
     }
 
+    const displayName = profile?.nickname ? `@${profile.nickname}` : profile?.name || 'User';
+
     return (
         <>
-            <Head title={`${profile.nickname || profile.name}'s Profile`} />
+            <Head title={`${displayName}'s Profile`} />
 
             <link
                 href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=cabinet-grotesk@400,500,700&display=swap"
@@ -179,12 +181,12 @@ export default function ProfileView() {
                             </div>
                             <div className="flex-1">
                                 <h2 className="text-2xl font-bold text-white mb-1">
-                                    {profile.nickname ? `@${profile.nickname}` : profile.name}
+                                    {displayName}
                                 </h2>
-                                {profile.nickname && (
+                                {profile?.nickname && (
                                     <p className="text-gray-500 mb-2">{profile.name}</p>
                                 )}
-                                {profile.bio && (
+                                {profile?.bio && (
                                     <p className="text-gray-400 mb-3">{profile.bio}</p>
                                 )}
 
