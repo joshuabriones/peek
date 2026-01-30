@@ -1,40 +1,27 @@
 <?php
 
+use App\Http\Controllers\FollowPageController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\MapPageController;
+use App\Http\Controllers\MessagePageController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
-use Laravel\Fortify\Features;
 
 // CSRF Cookie Route for Sanctum
 Route::get('/sanctum/csrf-cookie', function () {
     return response()->json(['message' => 'CSRF token set']);
 });
 
-Route::get('/', function () {
-    return Inertia::render('welcome_new', [
-        'canRegister' => Features::enabled(Features::registration()),
-    ]);
-})->name('home');
+// Public routes
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
+// Authenticated routes
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('map', function () {
-        return Inertia::render('map');
-    })->name('map');
-
-    Route::get('my-profile', function () {
-        return Inertia::render('my-profile');
-    })->name('my-profile');
-
-    Route::get('my-messages', function () {
-        return Inertia::render('my-messages');
-    })->name('my-messages');
-
-    Route::get('profile', function () {
-        return Inertia::render('profile');
-    })->name('profile');
-
-    Route::get('followers-following', function () {
-        return Inertia::render('followers-following');
-    })->name('followers-following');
+    Route::get('map', [MapPageController::class, 'index'])->name('map');
+    Route::get('my-profile', [ProfileController::class, 'myProfile'])->name('my-profile');
+    Route::get('my-messages', [MessagePageController::class, 'index'])->name('my-messages');
+    Route::get('profile', [ProfileController::class, 'show'])->name('profile');
+    Route::get('followers-following', [FollowPageController::class, 'index'])->name('followers-following');
 });
 
 require __DIR__.'/settings.php';

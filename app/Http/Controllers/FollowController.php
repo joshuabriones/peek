@@ -2,104 +2,62 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Follow;
+use App\Contracts\FollowServiceInterface;
+use App\Http\Requests\Follow\FollowUserRequest;
+use App\Http\Requests\Follow\UnfollowUserRequest;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class FollowController extends Controller
 {
-    public function follow(User $user): JsonResponse
+    public function __construct(
+        private FollowServiceInterface $followService
+    ) {}
+
+    public function follow(FollowUserRequest $request, User $user): JsonResponse
     {
-        $auth = Auth::user();
-
-        // Can't follow yourself
-        if ($auth->id === $user->id) {
-            return response()->json(['message' => 'You cannot follow yourself'], 422);
-        }
-
-        // Check if already following
-        if ($auth->isFollowing($user)) {
-            return response()->json(['message' => 'Already following this user'], 422);
-        }
-
-        Follow::create([
-            'follower_id' => $auth->id,
-            'following_id' => $user->id,
-        ]);
-
-        return response()->json([
-            'message' => 'User followed successfully',
-            'is_following' => true,
-            'is_mutual' => $auth->isMutualFollow($user),
-        ]);
+        $result = $this->followService->follow(Auth::user(), $user);
+        
+        return response()->json(
+            $result['success'] 
+                ? ['message' => $result['message'], ...$result['data']] 
+                : ['message' => $result['message']],
+            $result['status']
+        );
     }
 
-    public function unfollow(User $user): JsonResponse
+    public function unfollow(UnfollowUserRequest $request, User $user): JsonResponse
     {
-        $auth = Auth::user();
-
-        Follow::where('follower_id', $auth->id)
-            ->where('following_id', $user->id)
-            ->delete();
-
-        return response()->json([
-            'message' => 'User unfollowed successfully',
-            'is_following' => false,
-            'is_mutual' => false,
-        ]);
+        $result = $this->followService->unfollow(Auth::user(), $user);
+        
+        return response()->json(
+            $result['success'] 
+                ? ['message' => $result['message'], ...$result['data']] 
+                : ['message' => $result['message']],
+            $result['status']
+        );
     }
 
-    public function getFollowers(User $user)
+    public function getFollowers(User $user): JsonResponse
     {
-        $followers = $user->followers()
-            ->with('follower:id,name,nickname,bio')
-            ->get()
-            ->map(function ($follow) use ($user) {
-                $follower = $follow->follower;
-                return [
-                    'id' => $follower->id,
-                    'name' => $follower->name,
-                    'nickname' => $follower->nickname,
-                    'bio' => $follower->bio,
-                    'is_mutual' => $user->isMutualFollow($follower),
-                ];
-            });
-
-        return response()->json($followers);
+        $result = $this->followService->getFollowers($user);
+        
+        return response()->json($result['data'], $result['status']);
     }
 
-    public function getFollowing(User $user)
+    public function getFollowing(User $user): JsonResponse
     {
-        $following = $user->following()
-            ->with('following:id,name,nickname,bio')
-            ->get()
-            ->map(function ($follow) use ($user) {
-                $followingUser = $follow->following;
-                return [
-                    'id' => $followingUser->id,
-                    'name' => $followingUser->name,
-                    'nickname' => $followingUser->nickname,
-                    'bio' => $followingUser->bio,
-                    'is_mutual' => $user->isMutualFollow($followingUser),
-                ];
-            });
-
-        return response()->json($following);
+        $result = $this->followService->getFollowing($user);
+        
+        return response()->json($result['data'], $result['status']);
     }
 
     public function getFollowStatus(User $user): JsonResponse
     {
-        $auth = Auth::user();
-
-        return response()->json([
-            'is_following' => $auth->isFollowing($user),
-            'is_followed_by' => $auth->isFollowedBy($user),
-            'is_mutual' => $auth->isMutualFollow($user),
-            'followers_count' => $user->followers()->count(),
-            'following_count' => $user->following()->count(),
-        ]);
+        $result = $this->followService->getFollowStatus(Auth::user(), $user);
+        
+        return response()->json($result['data'], $result['status']);
     }
 }
 

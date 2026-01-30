@@ -1,8 +1,8 @@
 <?php
 
-use App\Http\Controllers\Api\MessageController;
-use App\Http\Controllers\Api\MapController;
 use App\Http\Controllers\FollowController;
+use App\Http\Controllers\MapController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
