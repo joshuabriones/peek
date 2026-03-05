@@ -58,3 +58,6 @@
 Run: `npm install @heroicons/react framer-motion` for enhanced UI components
 
 Then update dashboard.tsx with premium components as described above.
+
+
+<!-- TO BE ADDED MORE INFORMATION -->
